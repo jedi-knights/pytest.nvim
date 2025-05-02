@@ -92,6 +92,61 @@ Test results are populated into the **quickfix** window, allowing easy navigatio
 
 ---
 
+## ✅ Testing the Plugin
+
+We use [**Busted**](https://olivinelabs.com/busted/) for Lua unit testing.
+
+### 1️⃣ Install Busted (via LuaRocks)
+
+```bash
+luarocks install busted
+```
+
+💡 It's recommended to install Busted **locally** (project-specific) using:
+
+```bash
+luarocks init
+luarocks install busted
+```
+
+### 2️⃣ Run Tests
+
+After installing, you can run the test suite using:
+
+```bash
+eval $(luarocks path)  # Optional: to add LuaRocks binaries to your path
+busted
+```
+
+Or if installed locally:
+
+```bash
+./.luarocks/bin/busted
+```
+
+### 3️⃣ Example Test
+
+Tests are located in the `tests/` directory.
+
+Example:
+
+```lua
+local runner = require("pytest.runner")
+
+describe("runner", function()
+  it("should build a pytest command with a file", function()
+    local file = "tests/test_example.py"
+    local cmd = runner.build_command(file)
+    assert.is_table(cmd)
+    assert.is_truthy(vim.tbl_contains(cmd, file))
+    assert.are.equal(cmd[1], "python3")
+    assert.are.equal(cmd[3], "pytest")
+  end)
+end)
+```
+
+---
+
 ## 🗺 Roadmap
 
 - [ ] Telescope picker for environments and markers
