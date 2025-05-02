@@ -11,36 +11,57 @@ local M = {}
 
 function M.run_with_ui()
   local envs = config.options.envs or {}
+  local selected_env_vars = {}
 
-  -- 1️⃣ Picker for environment variables
-  pickers.new({}, {
-    prompt_title = "Select Environment",
-    finder = finders.new_table {
-      results = envs,
-    },
-    sorter = conf.generic_sorter({}),
-    attach_mappings = function(prompt_bufnr, map)
-      actions.select_default:replace(function()
-        actions.close(prompt_bufnr)
-        local selection = action_state.get_selected_entry()
-        local selected_env = selection and selection[1]
+  -- Helper to select REGION after ENVIRONMENT
+  local function select_env_var(var_name, choices, on_done)
+    pickers.new({}, {
+      prompt_title = "Select " .. var_name,
+      finder = finders.new_table {
+        results = choices,
+      },
+      sorter = conf.generic_sorter({}),
+      attach_mappings = function(prompt_bufnr, map)
+        actions.select_default:replace(function()
+          actions.close(prompt_bufnr)
+          local selection = action_state.get_selected_entry()
+          if selection then
+            selected_env_vars[var_name] = selection[1]
+            on_done()
+          end
+        end)
+        return true
+      end,
+    }):find()
+  end
 
-        -- 2️⃣ After selecting env, do markers picker
-        M.select_markers_and_run(selected_env)
-      end)
-      return true
-    end,
-  }):find()
+  -- Start with selecting ENVIRONMENT
+  if envs.ENVIRONMENT then
+    select_env_var("ENVIRONMENT", envs.ENVIRONMENT, function()
+      -- Next: select REGION
+      if envs.REGION then
+        select_env_var("REGION", envs.REGION, function()
+          -- Finally: select markers
+          M.select_markers_and_run(selected_env_vars)
+        end)
+      else
+        -- No REGION defined, jump to markers
+        M.select_markers_and_run(selected_env_vars)
+      end
+    end)
+  else
+    -- No ENVIRONMENT, skip to markers
+    M.select_markers_and_run(selected_env_vars)
+  end
 end
 
-function M.select_markers_and_run(selected_env)
+function M.select_markers_and_run(selected_env_vars)
   local available_markers = markers.get_markers()
   if #available_markers == 0 then
     vim.notify("No markers found in pytest.ini", vim.log.levels.WARN)
-    return runner.run_all({ env = selected_env })  -- fallback
+    return runner.run_all({ env_vars = selected_env_vars })
   end
 
-  -- Multi-select markers picker
   pickers.new({}, {
     prompt_title = "Select Markers (TAB to multi-select)",
     finder = finders.new_table {
@@ -53,7 +74,6 @@ function M.select_markers_and_run(selected_env)
         local multi = picker:get_multi_selection()
         local marker_list = {}
 
-        -- If no multi-select, fallback to single
         if vim.tbl_isempty(multi) then
           local selection = action_state.get_selected_entry()
           if selection then
@@ -67,7 +87,7 @@ function M.select_markers_and_run(selected_env)
 
         actions.close(prompt_bufnr)
         local marker_str = table.concat(marker_list, " and ")
-        runner.run_all({ env = selected_env, markers = marker_str })
+        runner.run_all({ env_vars = selected_env_vars, markers = marker_str })
       end)
       return true
     end,

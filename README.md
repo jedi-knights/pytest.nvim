@@ -50,7 +50,6 @@ use {
 ```
 
 ---
-
 ## ⚙️ Setup
 
 To customize settings, add the following to your Neovim config:
@@ -59,10 +58,17 @@ To customize settings, add the following to your Neovim config:
 require('pytest').setup({
   python_command = "python3",
   pytest_args = {"-v", "--tb=short"},
-  markers = {"smoke", "integration"},
-  envs = {"dev", "staging"},
+  -- Define available environment variables (the first value will be the default)
+  envs = {
+    ENVIRONMENT = { "qa", "prod" },
+    REGION = { "auto", "use1", "usw2", "euw1", "apse1" }
+  },
 })
 ```
+
+In this example:
+- ✅ You’ll be able to select **ENVIRONMENT** values like `prod`, `qa`, or `auto`.
+- ✅ You can also select **REGION** values like `us-east-1`, `us-west-2`, or `eu-west-1`.
 
 All configuration fields are optional. The plugin will apply default values if no setup options are provided.
 

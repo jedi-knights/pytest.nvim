@@ -37,13 +37,39 @@ function M.run_file()
   })
 end
 
-function M.run_all()
+function M.run_all(opts)
+  opts = opts or {}
   local cmd = M.build_command()
+
+  -- Add markers if provided
+  if opts.markers then
+    table.insert(cmd, "-m")
+    table.insert(cmd, opts.markers)
+  end
+
+  -- Build env table
+  local env_tbl = {}
+  if opts.env_vars then
+    -- If env_vars were provided from UI, use them
+    for key, val in pairs(opts.env_vars) do
+      table.insert(env_tbl, string.format("%s=%s", key, val))
+    end
+  else
+    -- Otherwise, use defaults (first values in each envs table)
+    local envs = require("pytest.config").options.envs or {}
+    for key, values in pairs(envs) do
+      if #values > 0 then
+        table.insert(env_tbl, string.format("%s=%s", key, values[1]))
+      end
+    end
+  end
+
   vim.fn.jobstart(cmd, {
     stdout_buffered = true,
+    env = env_tbl,
     on_stdout = function(_, data)
       if data then
-        vim.fn.setqflist({}, ' ', {title = 'Pytest Results', lines = data})
+        vim.fn.setqflist({}, ' ', { title = 'Pytest Results', lines = data })
         vim.cmd("copen")
       end
     end,
@@ -54,6 +80,7 @@ function M.run_all()
     end,
   })
 end
+
 
 function M.run_nearest()
   vim.notify("run_nearest not implemented yet", vim.log.levels.WARN)
