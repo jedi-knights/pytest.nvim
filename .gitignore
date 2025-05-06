@@ -43,3 +43,7 @@ luac.out
 /lua_modules
 /.luarocks
 
+deps
+**.DS_Store
+.ci
+

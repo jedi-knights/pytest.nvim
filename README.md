@@ -117,39 +117,11 @@ luarocks install busted
 
 ### 2️⃣ Run Tests
 
-After installing, you can run the test suite using:
+I will be using plenary to test things in this plugin.
 
-```bash
-eval $(luarocks path)  # Optional: to add LuaRocks binaries to your path
-busted
-```
-
-Or if installed locally:
-
-```bash
-./.luarocks/bin/busted
-```
 
 ### 3️⃣ Example Test
 
-Tests are located in the `tests/` directory.
-
-Example:
-
-```lua
-local runner = require("pytest.runner")
-
-describe("runner", function()
-  it("should build a pytest command with a file", function()
-    local file = "tests/test_example.py"
-    local cmd = runner.build_command(file)
-    assert.is_table(cmd)
-    assert.is_truthy(vim.tbl_contains(cmd, file))
-    assert.are.equal(cmd[1], "python3")
-    assert.are.equal(cmd[3], "pytest")
-  end)
-end)
-```
 
 ---
 
@@ -172,3 +144,13 @@ Your contributions are welcome! Feel free to open issues for bugs, feature reque
 ## 📜 License
 
 Distributed under the [MIT License](LICENSE).
+
+## References
+
+- [Structuring Neovim Lua Plugins](https://zignar.net/2022/11/06/structuring-neovim-lua-plugins/)
+- [Create Neovim Plugins with Lua](http://youtube.com/watch?v=wkxtHV1hzEY)
+- [Neovim Lua Plugin from Scratch](https://www.youtube.com/watch?v=n4Lp4cV8YR0)
+- [An example minimal plugin](https://github.com/lewis6991/spaceless.nvim)
+- [Plugin Boilerplate](https://github.com/shortcuts/neovim-plugin-boilerplate)
+- [vim.tbl_deep_extend](https://neovim.io/doc/user/lua.html#vim.tbl_deep_extend%28%29)
+
