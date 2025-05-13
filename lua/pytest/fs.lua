@@ -18,4 +18,10 @@ function M.dir_exists(path)
   return stat and stat.type == "directory"
 end
 
+function M.file_contains(path, pattern)
+  if not M.file_exists(path) then return false end
+  local content = M.read_file(path)
+  return content and content:match(pattern)
+end
+
 return M
