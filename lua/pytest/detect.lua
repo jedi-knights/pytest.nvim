@@ -57,6 +57,23 @@ function M.pyproject_toml_contains_pytest()
   return content:match("%[tool%.pytest%]") or content:match("%[tool%.pytest%.ini_options%]")
 end
 
+function M.debug()
+  print("[pytest.nvim] Debugging plugin load conditions:")
+
+  local results = {
+    ["pytest.ini"] = M.pytest_ini_exists(),
+    ["pyproject.toml [tool.pytest]"] = M.pyproject_toml_contains_pytest(),
+    ["pyproject.toml dependency"] = M.pyproject_toml_lists_pytest(),
+    ["requirements.txt"] = fs.file_contains("requirements.txt", "pytest"),
+    ["setup.cfg"] = fs.file_contains("setup.cfg", "[tool:pytest]"),
+    ["test files found"] = M.has_test_files(),
+  }
+
+  for label, result in pairs(results) do
+    print(string.format("  %-30s: %s", label, result and "✅" or "❌"))
+  end
+end
+
 function M.should_load_plugin()
   return M.pytest_ini_exists()
     or M.pyproject_toml_contains_pytest()
