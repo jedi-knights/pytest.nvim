@@ -1,10 +1,10 @@
 -- lua/pytest/commands.lua
 local M = {}
-local core = require("pytest")
 local config = require("pytest.config")
+local should_load_plugin = require("pytest.detect").should_load_plugin
 
 function M.start()
-    if not core.should_load_plugin() then
+    if not should_load_plugin() then
         vim.notify("Pytest plugin not loaded: condition not met", vim.log.levels.WARN)
         return
     end
