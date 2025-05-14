@@ -10,39 +10,56 @@ function M.pyproject_toml_exists()
 end
 
 function M.pyproject_toml_lists_pytest()
-  if not M.pyproject_toml_exists() then return false end
-  local content = fs.read_file("pyproject.toml")
-  if not content then return false end
+    if not M.pyproject_toml_exists() then return false end
 
-  local sections = {
-    "[tool.poetry.dependencies]",
-    "[tool.poetry.dev-dependencies]",
-    "[tool.pdm.dependencies]",
-    "[tool.pdm.dev-dependencies]",
-    "[tool.flit.metadata.requires]",
-    "[tool.flit.metadata.requires-extra]",
-    "[project.dependencies]",
-    "[project.optional-dependencies]",
-  }
+    local content = fs.read_file("pyproject.toml")
+    if not content then return false end
 
-  for _, section in ipairs(sections) do
-    if content:match(section) then
-      local section_content = content:match(section .. "(.-)%[") or content:match(section .. "(.-)$")
-      if section_content and section_content:match("pytest") then
-        return true
-      end
-    end
-  end
-
-  return false
+    -- Match [tool.pytest] section directly
+    return content:match("%[tool%.pytest%]") ~= nil
 end
 
 function M.requirements_txt_lists_pytest()
   return fs.file_contains("requirements.txt", "pytest")
 end
 
+
 function M.setup_cfg_lists_pytest()
-  return fs.file_contains("setup.cfg", "[tool:pytest]")
+  if not fs.file_exists("setup.cfg") then return false end
+
+  local content = fs.read_file("setup.cfg")
+  if not content then return false end
+
+  local pytest_detected = false
+  local in_section = nil
+
+  for line in content:gmatch("[^\r\n]+") do
+    -- Strip comments and trim
+    local clean_line = line:gsub("#.*", ""):gsub("^%s*", ""):gsub("%s*$", "")
+
+    -- Detect section headers
+    local section = clean_line:match("^%[([^%]]+)%]")
+    if section then
+      in_section = section
+    elseif in_section then
+      if in_section == "tool:pytest" then
+        -- Presence of this section implies pytest is used
+        return true
+      elseif
+        in_section == "options.extras_require" or
+        in_section == "options.setup_requires" or
+        in_section == "options.tests_require" or
+        in_section == "options"
+      then
+        -- Detect explicit "pytest" mention in these sections
+        if clean_line:match("['\"]?pytest['\"]?") then
+          pytest_detected = true
+        end
+      end
+    end
+  end
+
+  return pytest_detected
 end
 
 function M.has_test_files()
@@ -54,7 +71,8 @@ function M.pyproject_toml_contains_pytest()
   if not M.pyproject_toml_exists() then return false end
   local content = fs.read_file("pyproject.toml")
   if not content then return false end
-  return content:match("%[tool%.pytest%]") or content:match("%[tool%.pytest%.ini_options%]")
+  return content:match("%[tool%.pytest%]") ~= nil 
+        or content:match("%[tool%.pytest%.ini_options%]") ~= nil
 end
 
 function M.debug()
