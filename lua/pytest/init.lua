@@ -79,6 +79,7 @@ function M.telescope_picker()
     end)
 end
 
+
 function M.run_plugin_tests()
     Job:new({
         command = "nvim",
@@ -101,6 +102,9 @@ function M.run_plugin_tests()
 end
 
 function M.setup()
+    vim.api.nvim_create_user_command("PytestStart", function()
+        require("pytest.commands").start()
+    end, {})
     vim.api.nvim_create_user_command("PytestConfig", function() M.show_config() end, {})
     vim.api.nvim_create_user_command("PytestConfigEdit", function() M.edit_config() end, {})
     vim.api.nvim_create_user_command("PytestConfigWatch", function() M.watch_config() end, {})
@@ -115,5 +119,3 @@ function M.setup()
         M.run_plugin_tests()
     end, {})
 end
-
-return M
