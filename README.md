@@ -2,7 +2,7 @@
 
 **pytest.nvim** is a Neovim plugin that provides tight integration with the Pytest framework for Python.
 
-With `pytest.nvim`, you can execute tests directly from within Neovim, review results in the quickfix window, and (in upcoming versions) interactively select markers, environments, and other Pytest options. This plugin is designed to enhance the feedback loop for Python developers working with tests inside Neovim.
+With `pytest.nvim`, you can execute tests directly from within Neovim, review results in the quickfix window, and interactively select markers, environments, and other Pytest options. This plugin is designed to enhance the feedback loop for Python developers working with tests inside Neovim.
 
 ---
 
@@ -14,14 +14,16 @@ With `pytest.nvim`, you can execute tests directly from within Neovim, review re
   - Across the entire project
 - Display test results in the quickfix window
 - Support for customizable Pytest arguments
-- Lightweight and minimal dependencies, using Neovim's native APIs
+- Lightweight and minimal dependencies, using Neovim's native APIs and job management
+- Interactive pickers using Snacks for environment and marker selection
+- Configuration viewing and editing
 
 **Planned enhancements:**
 
-- Interactive Telescope picker for markers and environments
 - Inline virtual text to annotate test failures and errors
 - Floating windows for summary reports
 - JSON output parsing for detailed diagnostics and reporting
+- Advanced test result filtering and navigation
 
 ---
 
@@ -43,6 +45,30 @@ With `pytest.nvim`, you can execute tests directly from within Neovim, review re
 ```lua
 use {
   "jedi-knights/pytest.nvim",
+  requires = {
+    "folke/snacks.nvim",
+  },
+  config = function()
+    require("pytest").setup()
+  end,
+}
+```
+
+---
+## 📦 Dependencies
+
+This plugin requires the following dependencies:
+
+- **Snacks** (`folke/snacks.nvim`) - For interactive pickers (environment, marker, and config selection)
+
+**With Lazy.nvim:**
+
+```lua
+{
+  "jedi-knights/pytest.nvim",
+  dependencies = {
+    "folke/snacks.nvim",
+  },
   config = function()
     require("pytest").setup()
   end,
@@ -93,41 +119,32 @@ vim.api.nvim_set_keymap('n', '<leader>ta', ":lua require('pytest').run_all()<CR>
 | `:lua require('pytest').run_file()`      | Run tests in the current file         |
 | `:lua require('pytest').run_all()`       | Run all tests in the project          |
 | `:lua require('pytest').run_nearest()`   | Run the nearest test (coming soon)    |
+| `:PytestConfigSnacks`                    | Interactive config picker using Snacks |
+| `:PytestEnvironmentSnacks`               | Select environment using Snacks       |
+| `:PytestMarkerSnacks`                    | Select test markers using Snacks      |
 
 Test results are populated into the **quickfix** window, allowing easy navigation and inspection.
 
+### 🍿 Snacks Integration
+
+The plugin provides interactive pickers using Snacks for enhanced user experience:
+
+- **Configuration Picker** (`:PytestConfigSnacks`) - Browse and select pytest configuration options
+- **Environment Picker** (`:PytestEnvironmentSnacks`) - Select different test environments
+- **Marker Picker** (`:PytestMarkerSnacks`) - Choose specific test markers to run
+
+These pickers provide a modern, interactive way to configure and run your tests with different options.
+
 ---
 
-## ✅ Testing the Plugin
 
-We use [**Busted**](https://olivinelabs.com/busted/) for Lua unit testing.
-
-### 1️⃣ Install Busted (via LuaRocks)
-
-```bash
-luarocks install busted
-```
-
-💡 It's recommended to install Busted **locally** (project-specific) using:
-
-```bash
-luarocks init
-luarocks install busted
-```
-
-### 2️⃣ Run Tests
-
-I will be using plenary to test things in this plugin.
-
-
-### 3️⃣ Example Test
 
 
 ---
 
 ## 🗺 Roadmap
 
-- [ ] Telescope picker for environments and markers
+- [x] Snacks picker for environments and markers
 - [ ] JSON output parsing and error diagnostics
 - [ ] Inline virtual text for inline error/failure display
 - [ ] Floating window summaries of test results
