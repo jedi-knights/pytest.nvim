@@ -101,6 +101,44 @@ function M.run_plugin_tests()
     }):start()
 end
 
+function M.test_nearest()
+  local bufnr = vim.api.nvim_get_current_buf()
+  local cursor = vim.api.nvim_win_get_cursor(0)
+  local cur_line = cursor[1]
+  local lines = vim.api.nvim_buf_get_lines(bufnr, 0, cur_line, false)
+
+  local test_name, class_name
+  -- Search upwards for the nearest test function or class
+  for i = #lines, 1, -1 do
+    local line = lines[i]
+    local func = line:match("^%s*def%s+(test[%w_]*)")
+    if func and not test_name then
+      test_name = func
+    end
+    local class = line:match("^%s*class%s+(Test[%w_]*)")
+    if class and not class_name then
+      class_name = class
+    end
+    if test_name and class_name then break end
+  end
+
+  local file = vim.fn.expand("%")
+  local nodeid
+  if test_name and class_name then
+    nodeid = string.format("%s::%s::%s", file, class_name, test_name)
+  elseif test_name then
+    nodeid = string.format("%s::%s", file, test_name)
+  elseif class_name then
+    nodeid = string.format("%s::%s", file, class_name)
+  else
+    vim.notify("No test function or class found above cursor.", vim.log.levels.WARN)
+    return
+  end
+
+  -- Run pytest on the nodeid in a terminal split
+  vim.cmd("vsplit | terminal pytest " .. vim.fn.shellescape(nodeid))
+end
+
 function M.setup()
     vim.api.nvim_create_user_command("PytestStart", function()
         require("pytest.commands").start()
@@ -118,6 +156,17 @@ function M.setup()
     vim.api.nvim_create_user_command("RunPluginTests", function()
         M.run_plugin_tests()
     end, {})
+end
+
+function M.setup_keymaps()
+    print("setup_keymaps loaded from:" .. debug.getinfo(1).source)
+  -- Keymaps for all user-facing commands, prefixed with <leader>p
+  vim.keymap.set("n", "<leader>ps", ":PytestStart<CR>", { desc = "Pytest: Start" })
+  vim.keymap.set("n", "<leader>pc", ":PytestConfig<CR>", { desc = "Pytest: Show Config" })
+  vim.keymap.set("n", "<leader>pe", ":PytestConfigEdit<CR>", { desc = "Pytest: Edit Config" })
+  vim.keymap.set("n", "<leader>pw", ":PytestConfigWatch<CR>", { desc = "Pytest: Watch Config" })
+  vim.keymap.set("n", "<leader>pf", ":RunTests<CR>", { desc = "Pytest: Run Tests in File" })
+  vim.keymap.set("n", "<leader>pn", ":PytestNearest<CR>", { desc = "Pytest: Run Nearest Test" })
 end
 
 return M
