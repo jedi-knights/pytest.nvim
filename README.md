@@ -137,8 +137,65 @@ These pickers provide a modern, interactive way to configure and run your tests 
 
 ---
 
+## 💤 Lazy-Loading pytest.nvim (Recommended)
 
+To keep Neovim fast and efficient, you can lazy-load pytest.nvim so it only activates when you open a Python test file.
 
+### Using a Plugin Manager (e.g., lazy.nvim, packer.nvim)
+
+**Example with [lazy.nvim](https://github.com/folke/lazy.nvim):**
+
+```lua
+{
+  'yourname/pytest.nvim',
+  ft = { 'python' }, -- loads for all Python files
+  -- Or, to load only for test files:
+  event = { 'BufReadPre test_*.py', 'BufReadPre *_test.py' },
+  config = function()
+    require('pytest').setup_keymaps() -- Optional: set up default keymaps
+  end
+}
+```
+
+### Using a Plain Neovim Autocommand
+
+Add this to your `init.lua` or Neovim config:
+
+```lua
+vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
+  pattern = { "test_*.py", "*_test.py" },
+  callback = function()
+    require('pytest').setup_keymaps() -- Optional: set up default keymaps
+    -- You can also require('pytest') here to ensure the plugin is loaded
+  end,
+  desc = "Load pytest.nvim keymaps for test files"
+})
+```
+
+- This will only load pytest.nvim keymaps (and any other setup) when you open a Python test file.
+- You can safely call `setup_keymaps()` multiple times; it will not duplicate mappings.
+
+### Why Lazy-Load?
+- Faster startup time for Neovim
+- Only loads pytest.nvim when you need it
+- Avoids polluting your keymaps for non-test files
+
+---
+
+## 🔑 Default Keymaps
+
+If you use `require('pytest').setup_keymaps()`, the following mappings are set (all in normal mode):
+
+| Mapping         | Action                        |
+|-----------------|------------------------------|
+| `<leader>pf`    | Run all tests in file        |
+| `<leader>pn`    | Run nearest test             |
+| `<leader>pp`    | Pick and run test in file    |
+| `<leader>pl`    | List and open test files     |
+| `<leader>pj`    | Jump between src/test file   |
+| `<leader>ps`    | Fuzzy search for test files  |
+
+You can override or disable these mappings in your own config if needed.
 
 ---
 

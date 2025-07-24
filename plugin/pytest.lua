@@ -18,3 +18,15 @@ vim.api.nvim_create_user_command("PytestVisit", function()
   require("pytest").visit()
 end, {})
 
+vim.api.nvim_create_user_command("PytestListTests", function()
+  require("pytest").list_test_files()
+end, {})
+
+vim.api.nvim_create_user_command("PytestJumpTest", function()
+  require("pytest").jump_to_test_file()
+end, {})
+
+vim.api.nvim_create_user_command("PytestFuzzyTest", function()
+  require("pytest").fuzzy_find_test_file()
+end, {})
+
