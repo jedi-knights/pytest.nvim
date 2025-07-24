@@ -119,3 +119,5 @@ function M.setup()
         M.run_plugin_tests()
     end, {})
 end
+
+return M
