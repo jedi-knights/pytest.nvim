@@ -647,3 +647,5 @@ function M.setup_keymaps()
     map('n', '<leader>pj', ':PytestJumpTest<CR>', opts)
     map('n', '<leader>ps', ':PytestFuzzyTest<CR>', opts)
 end
+
+return M
