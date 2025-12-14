@@ -1,78 +1,121 @@
 local M = {}
 local fs = require("pytest.fs")
 
+local _detect_cache = setmetatable({}, { __mode = "kv" })
+
+local function get_file_cache_key(filepath)
+  local stat = vim.loop.fs_stat(filepath)
+  if not stat then
+    return nil
+  end
+  return filepath .. ":" .. stat.mtime.sec .. ":" .. stat.size
+end
+
+local function cached_check(key, check_fn)
+  if _detect_cache[key] ~= nil then
+    return _detect_cache[key]
+  end
+  local result = check_fn()
+  _detect_cache[key] = result
+  return result
+end
+
 function M.pytest_ini_exists()
-  return fs.file_exists("pytest.ini")
+  return cached_check("pytest_ini", function()
+    return fs.file_exists("pytest.ini")
+  end)
 end
 
 function M.pyproject_toml_exists()
-  return fs.file_exists("pyproject.toml")
+  return cached_check("pyproject_toml", function()
+    return fs.file_exists("pyproject.toml")
+  end)
 end
 
 function M.pyproject_toml_lists_pytest()
+  local cache_key = get_file_cache_key("pyproject.toml")
+  if not cache_key then
+    return false
+  end
+
+  return cached_check("pyproject_lists:" .. cache_key, function()
     if not M.pyproject_toml_exists() then return false end
 
     local content = fs.read_file("pyproject.toml")
     if not content then return false end
 
-    -- Match [tool.pytest] section directly
     return content:match("%[tool%.pytest%]") ~= nil
+  end)
 end
 
 function M.requirements_txt_lists_pytest()
-  return fs.file_contains("requirements.txt", "pytest")
+  return cached_check("requirements_pytest", function()
+    return fs.file_contains("requirements.txt", "pytest")
+  end)
 end
 
 
 function M.setup_cfg_lists_pytest()
-  if not fs.file_exists("setup.cfg") then return false end
+  local cache_key = get_file_cache_key("setup.cfg")
+  if not cache_key then
+    return cached_check("setup_cfg_missing", function() return false end)
+  end
 
-  local content = fs.read_file("setup.cfg")
-  if not content then return false end
+  return cached_check("setup_cfg:" .. cache_key, function()
+    if not fs.file_exists("setup.cfg") then return false end
 
-  local pytest_detected = false
-  local in_section = nil
+    local content = fs.read_file("setup.cfg")
+    if not content then return false end
 
-  for line in content:gmatch("[^\r\n]+") do
-    -- Strip comments and trim
-    local clean_line = line:gsub("#.*", ""):gsub("^%s*", ""):gsub("%s*$", "")
+    local pytest_detected = false
+    local in_section = nil
 
-    -- Detect section headers
-    local section = clean_line:match("^%[([^%]]+)%]")
-    if section then
-      in_section = section
-    elseif in_section then
-      if in_section == "tool:pytest" then
-        -- Presence of this section implies pytest is used
-        return true
-      elseif
-        in_section == "options.extras_require" or
-        in_section == "options.setup_requires" or
-        in_section == "options.tests_require" or
-        in_section == "options"
-      then
-        -- Detect explicit "pytest" mention in these sections
-        if clean_line:match("['\"]?pytest['\"]?") then
-          pytest_detected = true
+    for line in content:gmatch("[^\r\n]+") do
+      local clean_line = line:gsub("#.*", ""):gsub("^%s*", ""):gsub("%s*$", "")
+
+      local section = clean_line:match("^%[([^%]]+)%]")
+      if section then
+        in_section = section
+      elseif in_section then
+        if in_section == "tool:pytest" then
+          return true
+        elseif
+          in_section == "options.extras_require" or
+          in_section == "options.setup_requires" or
+          in_section == "options.tests_require" or
+          in_section == "options"
+        then
+          if clean_line:match("['\"]?pytest['\"]?") then
+            pytest_detected = true
+          end
         end
       end
     end
-  end
 
-  return pytest_detected
+    return pytest_detected
+  end)
 end
 
 function M.has_test_files()
-  local test_files = vim.fn.glob("**/test_*.py", false, true)
-  return test_files and #test_files > 0
+  return cached_check("test_files:" .. vim.fn.getcwd(), function()
+    local test_files = vim.fn.glob("**/test_*.py", false, true)
+    return test_files and #test_files > 0
+  end)
 end
 
 function M.pyproject_toml_contains_pytest()
-  if not M.pyproject_toml_exists() then return false end
-  local content = fs.read_file("pyproject.toml")
-  if not content then return false end
-  return content:match("%[tool%.pytest%]") ~= nil 
-        or content:match("%[tool%.pytest%.ini_options%]") ~= nil
+  local cache_key = get_file_cache_key("pyproject.toml")
+  if not cache_key then
+    return false
+  end
+
+  return cached_check("pyproject_contains:" .. cache_key, function()
+    if not M.pyproject_toml_exists() then return false end
+    local content = fs.read_file("pyproject.toml")
+    if not content then return false end
+    return content:match("%[tool%.pytest%]") ~= nil 
+          or content:match("%[tool%.pytest%.ini_options%]") ~= nil
+  end)
 end
 
 function M.debug()
@@ -99,6 +142,10 @@ function M.should_load_plugin()
     or M.requirements_txt_lists_pytest()
     or M.setup_cfg_lists_pytest()
     or M.has_test_files()
+end
+
+function M.clear_cache()
+  _detect_cache = setmetatable({}, { __mode = "kv" })
 end
 
 return M
