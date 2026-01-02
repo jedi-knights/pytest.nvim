@@ -1,0 +1,182 @@
+*pytest.nvim.txt*  Plugin for pytest integration in Neovim
+
+==============================================================================
+INTRODUCTION                                                *pytest.nvim*
+
+pytest.nvim provides tight integration with the Pytest framework for Python.
+
+Features:
+- Execute tests directly from Neovim
+- Run tests in current file, nearest test, or entire project
+- Display results in quickfix window
+- Customizable pytest arguments
+- Interactive configuration management
+- Telescope-based configuration picker
+
+==============================================================================
+INSTALLATION                                                *pytest-install*
+
+Using Lazy.nvim:
+>lua
+    {
+      "jedi-knights/pytest.nvim",
+      config = function()
+        require("pytest").setup()
+      end,
+    }
+<
+
+Using Packer:
+>lua
+    use {
+      "jedi-knights/pytest.nvim",
+      config = function()
+        require("pytest").setup()
+      end,
+    }
+<
+
+==============================================================================
+SETUP                                                       *pytest-setup*
+
+Configure pytest.nvim with custom options:
+>lua
+    require('pytest').setup({
+      python_command = "python3",
+      pytest_args = {"-v", "--tb=short"},
+      envs = {
+        ENVIRONMENT = { "qa", "prod" },
+        REGION = { "auto", "use1", "usw2", "euw1", "apse1" }
+      },
+    })
+<
+
+All configuration fields are optional. Default values are applied if not
+specified.
+
+==============================================================================
+COMMANDS                                                    *pytest-commands*
+
+:PytestStart                                                *:PytestStart*
+    Start pytest execution.
+
+:PytestConfig                                               *:PytestConfig*
+    Show current pytest configuration.
+
+:PytestConfigEdit                                           *:PytestConfigEdit*
+    Open pytest configuration file for editing.
+
+:PytestConfigWatch                                          *:PytestConfigWatch*
+    Watch pytest configuration file for changes.
+
+:PytestConfigTelescope                                      *:PytestConfigTelescope*
+    Open Telescope picker to browse pytest configuration.
+
+:RunTests                                                   *:RunTests*
+    Run all tests in the current file.
+
+:RunPluginTests                                             *:RunPluginTests*
+    Run plugin's internal tests.
+
+:PytestNearest                                              *:PytestNearest*
+    Run the nearest test to the cursor position.
+
+==============================================================================
+KEYMAPS                                                     *pytest-keymaps*
+
+Default keymaps (configured via setup_keymaps()):
+
+    <leader>pts                 Start pytest                *pytest-pts*
+    <leader>ptc                 Show pytest config          *pytest-ptc*
+    <leader>pte                 Edit pytest config          *pytest-pte*
+    <leader>ptw                 Watch pytest config         *pytest-ptw*
+    <leader>ptf                 Run tests in file           *pytest-ptf*
+    <leader>ptn                 Run nearest test            *pytest-ptn*
+
+All keymaps use the <leader>pt* namespace to avoid conflicts with other
+Python-related plugins.
+
+To define custom keymaps, use:
+>lua
+    vim.keymap.set('n', '<leader>tf', 
+      ":lua require('pytest').run_file()<CR>", 
+      { desc = "Pytest: Run file" })
+<
+
+==============================================================================
+FUNCTIONS                                                   *pytest-functions*
+
+pytest.setup({opts})                                        *pytest.setup()*
+    Setup function to configure the plugin.
+    
+    Parameters:~
+        {opts} (table) Configuration options
+
+pytest.read_pytest_config({callback})                      *pytest.read_pytest_config()*
+    Read pytest configuration from project files.
+    
+    Parameters:~
+        {callback} (function) Called with config and file path
+
+pytest.show_config()                                        *pytest.show_config()*
+    Display current pytest configuration in a notification.
+
+pytest.edit_config()                                        *pytest.edit_config()*
+    Open pytest configuration file in editor.
+
+pytest.watch_config()                                       *pytest.watch_config()*
+    Watch pytest configuration file for changes.
+
+pytest.telescope_picker()                                   *pytest.telescope_picker()*
+    Open Telescope picker to browse pytest configuration.
+
+pytest.test_nearest()                                       *pytest.test_nearest()*
+    Run the test nearest to the cursor position.
+    
+    Searches upward from cursor for test functions (test_*) and test
+    classes (Test*), then executes pytest with the appropriate node ID.
+
+pytest.run_plugin_tests()                                   *pytest.run_plugin_tests()*
+    Run the plugin's internal test suite using Plenary.
+
+pytest.setup_keymaps()                                      *pytest.setup_keymaps()*
+    Setup default keymaps for pytest commands.
+    
+    This function is called automatically during setup, but can be called
+    manually if needed.
+
+==============================================================================
+USAGE                                                       *pytest-usage*
+
+Run tests in current file:
+    :RunTests
+    or press <leader>ptf
+
+Run nearest test:
+    :PytestNearest
+    or press <leader>ptn
+
+Show configuration:
+    :PytestConfig
+    or press <leader>ptc
+
+Edit configuration:
+    :PytestConfigEdit
+    or press <leader>pte
+
+==============================================================================
+CONFIGURATION FILES                                         *pytest-config-files*
+
+pytest.nvim searches for configuration in the following files:
+- pytest.ini
+- pyproject.toml
+
+Configuration is automatically detected in your project directory (up to
+3 levels deep).
+
+==============================================================================
+CREDITS & LICENSE                                           *pytest-credits*
+
+Distributed under the MIT License.
+
+vim:tw=78:ts=8:ft=help:norl:

@@ -160,13 +160,12 @@ end
 
 function M.setup_keymaps()
     print("setup_keymaps loaded from:" .. debug.getinfo(1).source)
-  -- Keymaps for all user-facing commands, prefixed with <leader>p
-  vim.keymap.set("n", "<leader>ps", ":PytestStart<CR>", { desc = "Pytest: Start" })
-  vim.keymap.set("n", "<leader>pc", ":PytestConfig<CR>", { desc = "Pytest: Show Config" })
-  vim.keymap.set("n", "<leader>pe", ":PytestConfigEdit<CR>", { desc = "Pytest: Edit Config" })
-  vim.keymap.set("n", "<leader>pw", ":PytestConfigWatch<CR>", { desc = "Pytest: Watch Config" })
-  vim.keymap.set("n", "<leader>pf", ":RunTests<CR>", { desc = "Pytest: Run Tests in File" })
-  vim.keymap.set("n", "<leader>pn", ":PytestNearest<CR>", { desc = "Pytest: Run Nearest Test" })
+  vim.keymap.set("n", "<leader>pts", ":PytestStart<CR>", { desc = "Pytest: Start" })
+  vim.keymap.set("n", "<leader>ptc", ":PytestConfig<CR>", { desc = "Pytest: Show Config" })
+  vim.keymap.set("n", "<leader>pte", ":PytestConfigEdit<CR>", { desc = "Pytest: Edit Config" })
+  vim.keymap.set("n", "<leader>ptw", ":PytestConfigWatch<CR>", { desc = "Pytest: Watch Config" })
+  vim.keymap.set("n", "<leader>ptf", ":RunTests<CR>", { desc = "Pytest: Run Tests in File" })
+  vim.keymap.set("n", "<leader>ptn", ":PytestNearest<CR>", { desc = "Pytest: Run Nearest Test" })
 end
 
 return M

@@ -74,14 +74,27 @@ All configuration fields are optional. The plugin will apply default values if n
 
 ---
 
-## 🔑 Example Keymaps
+## 🔑 Default Keymaps
 
-For fast access to testing commands, you can add these mappings:
+The plugin sets up the following keymaps by default (called via `setup_keymaps()`):
+
+| Keymap | Command | Description |
+|--------|---------|-------------|
+| `<leader>pts` | `:PytestStart` | Start pytest |
+| `<leader>ptc` | `:PytestConfig` | Show pytest config |
+| `<leader>pte` | `:PytestConfigEdit` | Edit pytest config |
+| `<leader>ptw` | `:PytestConfigWatch` | Watch pytest config |
+| `<leader>ptf` | `:RunTests` | Run tests in current file |
+| `<leader>ptn` | `:PytestNearest` | Run nearest test |
+
+### Custom Keymaps
+
+You can also define your own keymaps:
 
 ```lua
-vim.api.nvim_set_keymap('n', '<leader>tt', ":lua require('pytest').run_nearest()<CR>", { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<leader>tf', ":lua require('pytest').run_file()<CR>", { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<leader>ta', ":lua require('pytest').run_all()<CR>", { noremap = true, silent = true })
+vim.keymap.set('n', '<leader>tf', ":lua require('pytest').run_file()<CR>", { desc = "Pytest: Run file" })
+vim.keymap.set('n', '<leader>tn', ":lua require('pytest').run_nearest()<CR>", { desc = "Pytest: Run nearest" })
+vim.keymap.set('n', '<leader>ta', ":lua require('pytest').run_all()<CR>", { desc = "Pytest: Run all" })
 ```
 
 ---
